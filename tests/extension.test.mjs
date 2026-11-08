@@ -31,6 +31,19 @@ async function stageExtension(origin) {
   return tmp;
 }
 
+/** Waits until this popup tab's stored semitones reach `want` (undefined = cleared). */
+function storedSemitones(page, want) {
+  return page.waitForFunction(
+    async (expected) => {
+      const self = await chrome.tabs.getCurrent();
+      const stored = await chrome.storage.session.get(`tab:${self.id}`);
+      return (stored[`tab:${self.id}`]?.semitones ?? undefined) === expected;
+    },
+    want,
+    { timeout: 5000 }
+  );
+}
+
 /** The popup's own driver logic, run from an extension page against a known tab. */
 async function driveFromExtension(page, tabId, method, arg) {
   return page.evaluate(
@@ -82,6 +95,7 @@ after(async () => {
 describe('the packed extension', () => {
   let extPage;
   let tabId;
+  let popupUrl;
 
   test('loads in Chromium and reports no install warnings', async () => {
     extPage = await context.newPage();
@@ -97,7 +111,8 @@ describe('the packed extension', () => {
       'the extension should need no permissions beyond these'
     );
 
-    await extPage.goto(`chrome-extension://${mine.id}/popup.html`);
+    popupUrl = `chrome-extension://${mine.id}/popup.html`;
+    await extPage.goto(popupUrl);
     tabId = await extPage.evaluate(async () => {
       const api = globalThis.browser ?? globalThis.chrome;
       const self = await api.tabs.getCurrent();
@@ -112,6 +127,115 @@ describe('the packed extension', () => {
     assert.equal(await extPage.inputValue('#rate'), '100');
     assert.equal(await extPage.textContent('#pitchVal'), '0');
     assert.equal(await extPage.textContent('#rateVal'), '100%');
+    assert.match(await extPage.textContent('.label'), /semitones/, 'the pitch unit must be stated');
+  });
+
+  test('ships a toolbar icon at every size both stores ask for', async () => {
+    const mf = JSON.parse(await fs.readFile(path.join(root, 'dist/chrome/manifest.json'), 'utf8'));
+    const wanted = ['16', '32', '48', '128'];
+    assert.deepEqual(Object.keys(mf.icons).sort(), [...wanted].sort());
+    assert.deepEqual(Object.keys(mf.action.default_icon).sort(), [...wanted].sort());
+
+    for (const size of wanted) {
+      const file = path.join(root, 'dist/chrome', mf.icons[size]);
+      const png = await fs.readFile(file);
+      assert.equal(png.subarray(1, 4).toString(), 'PNG', `${file} should be a PNG`);
+      // IHDR carries the real dimensions, which must match what the manifest claims
+      assert.equal(png.readUInt32BE(16), Number(size), `${file} width`);
+      assert.equal(png.readUInt32BE(20), Number(size), `${file} height`);
+    }
+  });
+
+  // The slider counts semitones; a musician asking for "a tone and a half"
+  // needs to see that this is 3 of them, not 1.5.
+  test('the pitch readout spells out the interval in tones', async () => {
+    const readouts = {};
+    for (const semitones of [1, 2, 3, -3, 12]) {
+      await extPage.evaluate((value) => {
+        const el = document.getElementById('pitch');
+        el.value = String(value);
+        el.dispatchEvent(new Event('input'));
+      }, semitones);
+      readouts[semitones] = await extPage.textContent('#pitchVal');
+    }
+    assert.deepEqual(readouts, {
+      1: '+1 (\u00bd tone)',
+      2: '+2 (1 tone)',
+      3: '+3 (1\u00bd tones)',
+      '-3': '\u22123 (1\u00bd tones)',
+      12: '+12 (6 tones)',
+    });
+  });
+
+  test('the +/- buttons step the sliders and stop at the ends', async () => {
+    const press = async (target, delta, times) => {
+      for (let i = 0; i < times; i++) {
+        await extPage.click(`.step[data-target="${target}"][data-delta="${delta}"]`);
+      }
+      return extPage.inputValue(`#${target}`);
+    };
+
+    await extPage.evaluate(() => {
+      for (const [id, v] of [['pitch', '0'], ['rate', '100']]) {
+        const el = document.getElementById(id);
+        el.value = v;
+        el.dispatchEvent(new Event('input'));
+      }
+    });
+
+    assert.equal(await press('pitch', '1', 3), '3', 'three clicks of + is a tone and a half');
+    assert.equal(await press('pitch', '-1', 5), '-2');
+    assert.equal(await press('rate', '-5', 2), '90', 'tempo steps in 5% increments');
+
+    // clamping: stepping exactly to the top of the range locks the button,
+    // rather than letting it run past +12
+    assert.equal(await press('pitch', '1', 14), '12', 'from -2, fourteen steps reaches the top');
+    assert.equal(
+      await extPage.isDisabled('.step[data-target="pitch"][data-delta="1"]'),
+      true,
+      'the + button should be disabled at the top of the range'
+    );
+    assert.equal(
+      await extPage.isDisabled('.step[data-target="pitch"][data-delta="-1"]'),
+      false,
+      'the - button should still work there'
+    );
+
+    await extPage.evaluate(() => {
+      const el = document.getElementById('pitch');
+      el.value = '0';
+      el.dispatchEvent(new Event('input'));
+    });
+  });
+
+  // The bug this covers: settings used to live in one global bucket, so
+  // changing the sliders on a silent tab armed whichever tab you opened next.
+  test('each tab keeps its own pitch and tempo', async () => {
+    await extPage.click('.step[data-target="pitch"][data-delta="1"]');
+    await extPage.click('.step[data-target="pitch"][data-delta="1"]');
+    await extPage.click('.step[data-target="pitch"][data-delta="1"]');
+    assert.equal(await extPage.inputValue('#pitch'), '3');
+
+    const otherTab = await context.newPage();
+    await otherTab.goto(popupUrl);
+    assert.equal(
+      await otherTab.inputValue('#pitch'),
+      '0',
+      'a different tab must not inherit the first tab\u2019s transposition'
+    );
+    await otherTab.close();
+
+    // the popup saves on a debounce, so wait for the write rather than racing it
+    await storedSemitones(extPage, 3);
+    await extPage.reload();
+    assert.equal(await extPage.inputValue('#pitch'), '3', 'a tab remembers its own setting');
+    assert.match(await extPage.textContent('#pitchVal'), /1\u00bd tones/);
+
+    await extPage.click('#reset');
+    assert.equal(await extPage.inputValue('#pitch'), '0');
+    await storedSemitones(extPage, undefined);
+    await extPage.reload();
+    assert.equal(await extPage.inputValue('#pitch'), '0', 'reset clears the stored setting too');
   });
 
   test('builds the audio graph in the media page on demand', async () => {
@@ -143,6 +267,7 @@ describe('the packed extension', () => {
   });
 
   test('playback keeps progressing while shifted (the page is not left silent or stalled)', async () => {
+    await mediaPage.bringToFront(); // a backgrounded tab gets throttled in headless
     const before = await mediaPage.evaluate(() => document.getElementById('clip').currentTime);
     await mediaPage.waitForFunction(
       (t) => document.getElementById('clip').currentTime > t + 0.3,
@@ -162,6 +287,7 @@ describe('the packed extension', () => {
   });
 
   test('audio still plays after the shifter is bypassed', async () => {
+    await mediaPage.bringToFront();
     const before = await mediaPage.evaluate(() => document.getElementById('clip').currentTime);
     await mediaPage.waitForFunction(
       (t) => document.getElementById('clip').currentTime > t + 0.3,

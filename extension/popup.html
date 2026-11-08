@@ -52,16 +52,37 @@
         font-weight: 600;
       }
       input[type='range'] {
-        width: 100%;
+        flex: 1;
+        min-width: 0;
         margin: 0;
         accent-color: var(--accent);
+      }
+      .control {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .step {
+        flex: none;
+        width: 22px;
+        height: 22px;
+        padding: 0;
+        font-size: 14px;
+        line-height: 1;
+        font-variant-numeric: tabular-nums;
+      }
+      .step:disabled {
+        opacity: 0.35;
+        cursor: default;
+        border-color: var(--line);
+        color: var(--fg);
       }
       .ticks {
         display: flex;
         justify-content: space-between;
         color: var(--muted);
         font-size: 10px;
-        margin-top: 2px;
+        margin: 2px 30px 0;
       }
       footer {
         display: flex;
@@ -99,14 +120,22 @@
     <h1>Pitch Shifter</h1>
 
     <div class="row">
-      <div class="label"><span>Pitch</span><span class="val" id="pitchVal">0</span></div>
-      <input type="range" id="pitch" min="-12" max="12" step="1" value="0" />
+      <div class="label"><span>Pitch (semitones)</span><span class="val" id="pitchVal">0</span></div>
+      <div class="control">
+        <button class="step" data-target="pitch" data-delta="-1" aria-label="Down one semitone">−</button>
+        <input type="range" id="pitch" min="-12" max="12" step="1" value="0" />
+        <button class="step" data-target="pitch" data-delta="1" aria-label="Up one semitone">+</button>
+      </div>
       <div class="ticks"><span>−12</span><span>0</span><span>+12</span></div>
     </div>
 
     <div class="row">
       <div class="label"><span>Tempo</span><span class="val" id="rateVal">100%</span></div>
-      <input type="range" id="rate" min="50" max="150" step="5" value="100" />
+      <div class="control">
+        <button class="step" data-target="rate" data-delta="-5" aria-label="Slower by 5 percent">−</button>
+        <input type="range" id="rate" min="50" max="150" step="5" value="100" />
+        <button class="step" data-target="rate" data-delta="5" aria-label="Faster by 5 percent">+</button>
+      </div>
       <div class="ticks"><span>50%</span><span>100%</span><span>150%</span></div>
     </div>
 
@@ -115,6 +144,6 @@
       <span id="status">…</span>
     </footer>
 
-    <script src="popup.js"></script>
+    <script type="module" src="popup.js"></script>
   </body>
 </html>

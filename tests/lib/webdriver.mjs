@@ -10,9 +10,6 @@ import net from 'node:net';
 const GECKODRIVER = process.env.GECKODRIVER_BIN || 'geckodriver';
 const FIREFOX = process.env.FIREFOX_BIN || undefined;
 
-/** A fixed add-on UUID, so moz-extension:// URLs are predictable in the test. */
-export const EXTENSION_UUID = 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee';
-
 const freePort = () =>
   new Promise((resolve, reject) => {
     const srv = net.createServer();
@@ -64,9 +61,9 @@ export class FirefoxSession {
 
   /**
    * `prefs` here matter as much as the capabilities: autoplay has to be allowed
-   * for a test to start media without a click, the add-on's UUID is pinned so
-   * its pages can be addressed, and page console output is routed to stdout so
-   * the harness can see errors Firefox would otherwise keep to itself.
+   * for a test to start media without a click, and page console output is
+   * routed to stdout so the harness can see errors Firefox would otherwise
+   * keep to itself.
    */
   static async create(base, extraPrefs = {}) {
     const capabilities = {
@@ -79,9 +76,6 @@ export class FirefoxSession {
             'media.autoplay.default': 0,
             'media.autoplay.blocking_policy': 0,
             'media.volume_scale': '0.0',
-            'extensions.webextensions.uuids': JSON.stringify({
-              'pitch-shifter@local': EXTENSION_UUID,
-            }),
             'xpinstall.signatures.required': false,
             'devtools.console.stdout.content': true,
             ...extraPrefs,

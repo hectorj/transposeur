@@ -1,3 +1,5 @@
+import { DEFAULTS, isDefault, load, save, clear } from './settings.js';
+
 const api = globalThis.browser ?? globalThis.chrome;
 
 const pitch = document.getElementById('pitch');
@@ -6,19 +8,16 @@ const pitchVal = document.getElementById('pitchVal');
 const rateVal = document.getElementById('rateVal');
 const status = document.getElementById('status');
 
-async function activeTab() {
-  const [tab] = await api.tabs.query({ active: true, currentWindow: true });
-  return tab;
-}
+/** The tab this popup acts on, resolved once when it opens. */
+let tabId = null;
 
 /**
  * Inject (idempotently) and call one method of window.__pitchShifter in every
  * frame, then report the state of whichever frame actually holds the media.
  */
 async function drive(method, arg = null) {
-  const tab = await activeTab();
-  if (!tab?.id) return null;
-  const target = { tabId: tab.id, allFrames: true };
+  if (tabId == null) return null;
+  const target = { tabId, allFrames: true };
   try {
     await api.scripting.executeScript({ target, files: ['content.js'] });
     const results = await api.scripting.executeScript({
@@ -54,15 +53,42 @@ function render(state) {
   }
 }
 
+/**
+ * Semitones, with the equivalent in tones spelled out — musicians think in
+ * tones, and a bare "+3" reads as three of whatever the slider counts.
+ */
+function pitchLabel(semitones) {
+  if (semitones === 0) return '0';
+  const n = Math.abs(semitones);
+  const whole = Math.floor(n / 2);
+  const half = n % 2;
+  const tones = whole
+    ? `${whole}${half ? '½' : ''} tone${whole > 1 || half ? 's' : ''}`
+    : '½ tone';
+  return `${semitones > 0 ? '+' : '−'}${n} (${tones})`;
+}
+
 const label = () => {
-  const s = Number(pitch.value);
-  pitchVal.textContent = s > 0 ? `+${s}` : String(s);
+  pitchVal.textContent = pitchLabel(Number(pitch.value));
   rateVal.textContent = `${rate.value}%`;
+  for (const button of document.querySelectorAll('.step')) {
+    const slider = document.getElementById(button.dataset.target);
+    const next = Number(slider.value) + Number(button.dataset.delta);
+    button.disabled = next < Number(slider.min) || next > Number(slider.max);
+  }
 };
 
+const current = () => ({ semitones: Number(pitch.value), rate: Number(rate.value) / 100 });
+
+function show({ semitones, rate: playbackRate }) {
+  pitch.value = String(semitones);
+  rate.value = String(Math.round(playbackRate * 100));
+  label();
+}
+
 const send = debounce(async () => {
-  const settings = { semitones: Number(pitch.value), rate: Number(rate.value) / 100 };
-  await api.storage.local.set(settings);
+  const settings = current();
+  await save(api, tabId, settings);
   render(await drive('apply', settings));
 }, 60);
 
@@ -81,18 +107,37 @@ for (const el of [pitch, rate]) {
   });
 }
 
-document.getElementById('reset').addEventListener('click', async () => {
-  pitch.value = 0;
-  rate.value = 100;
+/** Nudge a slider by one step; the sliders themselves are coarse to drag. */
+function nudge(slider, delta) {
+  const next = Math.min(Number(slider.max), Math.max(Number(slider.min), Number(slider.value) + delta));
+  if (next === Number(slider.value)) return;
+  slider.value = String(next);
   label();
-  await api.storage.local.set({ semitones: 0, rate: 1 });
+  send();
+}
+
+for (const button of document.querySelectorAll('.step')) {
+  button.addEventListener('click', () => {
+    nudge(document.getElementById(button.dataset.target), Number(button.dataset.delta));
+  });
+}
+
+document.getElementById('reset').addEventListener('click', async () => {
+  show(DEFAULTS);
+  await clear(api, tabId);
   render(await drive('reset'));
 });
 
 (async () => {
-  const saved = await api.storage.local.get({ semitones: 0, rate: 1 });
-  pitch.value = saved.semitones;
-  rate.value = Math.round(saved.rate * 100);
-  label();
-  render(await drive('state'));
+  const [tab] = await api.tabs.query({ active: true, currentWindow: true });
+  tabId = tab?.id ?? null;
+  if (tabId == null) {
+    render(null);
+    return;
+  }
+  const saved = await load(api, tabId);
+  show(saved);
+  // Re-apply rather than only reading state: a reload or a YouTube in-page
+  // navigation drops the audio graph, and this tab's settings should survive it.
+  render(isDefault(saved) ? await drive('state') : await drive('apply', saved));
 })();

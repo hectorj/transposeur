@@ -17,6 +17,7 @@
             web-ext # Firefox manifest lint + xpi packaging
             jq
             zip
+            resvg # rasterises the toolbar icon (npm run icons)
 
             gcc # native DSP test harness
             gnumake
@@ -45,6 +46,7 @@
               npm run test:firefox    packed extension in Firefox
               npm run lint:firefox    web-ext lint of the Firefox build
               npm run build           pack extension/ for Chrome and Firefox
+              npm run icons           redraw the toolbar icon from assets/icon.svg
             BANNER
           '';
         };

@@ -14,7 +14,8 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const src = path.join(root, 'extension');
 const dist = path.join(root, 'dist');
 
-const GECKO_ID = 'pitch-shifter@local';
+// Permanent once published — AMO will not let it change. See PUBLISHING.md.
+const GECKO_ID = 'pitch-shifter@hectorj.net';
 
 await fs.rm(dist, { recursive: true, force: true });
 

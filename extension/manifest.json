@@ -1,0 +1,20 @@
+{
+  "manifest_version": 3,
+  "name": "Pitch Shifter",
+  "version": "0.1.0",
+  "description": "Transpose and slow down any audio or video in a page — without the chipmunk effect.",
+  "permissions": ["activeTab", "scripting", "storage"],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Pitch Shifter"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["vendor/SignalsmithStretch.mjs", "shifter-config.js"],
+      "matches": ["<all_urls>"]
+    }
+  ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'"
+  }
+}

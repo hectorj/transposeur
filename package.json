@@ -1,0 +1,18 @@
+{
+  "name": "pitch-shifter",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Formant-preserving pitch + tempo control for audio/video in Chrome and Firefox",
+  "license": "MIT",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "test": "node scripts/build.mjs && node --test --test-concurrency=1 tests/dsp.test.mjs tests/extension.test.mjs",
+    "test:dsp": "node --test tests/dsp.test.mjs",
+    "test:extension": "node scripts/build.mjs && node --test tests/extension.test.mjs",
+    "lint:firefox": "node scripts/build.mjs && web-ext lint -s dist/firefox"
+  },
+  "devDependencies": {
+    "playwright-core": "^1.49.0"
+  }
+}

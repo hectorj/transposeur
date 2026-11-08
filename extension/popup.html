@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Pitch Shifter</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        --bg: #ffffff;
+        --fg: #16191d;
+        --muted: #6b7280;
+        --line: #e3e6ea;
+        --accent: #3b6ef5;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #1b1d21;
+          --fg: #f0f2f5;
+          --muted: #9aa2ad;
+          --line: #32363c;
+          --accent: #6e93ff;
+        }
+      }
+      body {
+        margin: 0;
+        padding: 14px 16px 12px;
+        width: 268px;
+        background: var(--bg);
+        color: var(--fg);
+        font: 13px/1.45 system-ui, sans-serif;
+      }
+      h1 {
+        margin: 0 0 12px;
+        font-size: 13px;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+      }
+      .row {
+        margin-bottom: 14px;
+      }
+      .label {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        margin-bottom: 5px;
+      }
+      .label span:first-child {
+        color: var(--muted);
+      }
+      .val {
+        font-variant-numeric: tabular-nums;
+        font-weight: 600;
+      }
+      input[type='range'] {
+        width: 100%;
+        margin: 0;
+        accent-color: var(--accent);
+      }
+      .ticks {
+        display: flex;
+        justify-content: space-between;
+        color: var(--muted);
+        font-size: 10px;
+        margin-top: 2px;
+      }
+      footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        border-top: 1px solid var(--line);
+        padding-top: 10px;
+      }
+      button {
+        font: inherit;
+        padding: 4px 10px;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        background: transparent;
+        color: var(--fg);
+        cursor: pointer;
+      }
+      button:hover {
+        border-color: var(--accent);
+        color: var(--accent);
+      }
+      #status {
+        color: var(--muted);
+        font-size: 11px;
+        text-align: right;
+        flex: 1;
+      }
+      #status.err {
+        color: #d4533e;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Pitch Shifter</h1>
+
+    <div class="row">
+      <div class="label"><span>Pitch</span><span class="val" id="pitchVal">0</span></div>
+      <input type="range" id="pitch" min="-12" max="12" step="1" value="0" />
+      <div class="ticks"><span>−12</span><span>0</span><span>+12</span></div>
+    </div>
+
+    <div class="row">
+      <div class="label"><span>Tempo</span><span class="val" id="rateVal">100%</span></div>
+      <input type="range" id="rate" min="50" max="150" step="5" value="100" />
+      <div class="ticks"><span>50%</span><span>100%</span><span>150%</span></div>
+    </div>
+
+    <footer>
+      <button id="reset">Reset</button>
+      <span id="status">…</span>
+    </footer>
+
+    <script src="popup.js"></script>
+  </body>
+</html>

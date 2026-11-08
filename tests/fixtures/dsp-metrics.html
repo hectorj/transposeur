@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Pitch shifter DSP metrics</title>
+  </head>
+  <body>
+    <p>Renders through the shifter and measures it in-page, so a WebDriver
+      session can assert on numbers instead of shipping audio over the wire.</p>
+    <script type="module">
+      import SignalsmithStretch from '/vendor/SignalsmithStretch.mjs';
+      import { FORMANT_BASE_HZ } from '/ext/shifter-config.js';
+      import { voiceLike, sine, dominantHz, fundamentalHz, spectralCentroidHz } from '/lib/dsp.mjs';
+
+      const SR = 48000;
+      const FORMANTS = [
+        { hz: 700, q: 8, gain: 1 },
+        { hz: 1150, q: 10, gain: 0.55 },
+        { hz: 2700, q: 12, gain: 0.25 },
+      ];
+
+      async function render(input, { semitones, formantCompensation, formantBaseHz }) {
+        const length = input.length + SR;
+        const ctx = new OfflineAudioContext({ numberOfChannels: 1, length, sampleRate: SR });
+        const buffer = ctx.createBuffer(1, input.length, SR);
+        buffer.copyToChannel(input, 0);
+        const src = ctx.createBufferSource();
+        src.buffer = buffer;
+        const stretch = await SignalsmithStretch(ctx, {
+          numberOfInputs: 1,
+          numberOfOutputs: 1,
+          outputChannelCount: [1],
+        });
+        src.connect(stretch);
+        stretch.connect(ctx.destination);
+        const latency = await stretch.latency();
+        await stretch.schedule({ output: 0, active: true, semitones, formantCompensation, formantBaseHz });
+        src.start(0);
+        const out = await ctx.startRendering();
+        return { out: out.getChannelData(0), latency };
+      }
+
+      const steady = (a, len) => a.slice(Math.round(SR * 0.7), len - Math.round(SR * 0.2));
+
+      /** Pitch of a pure tone, before and after a shift. */
+      window.measureTone = async ({ hz, semitones }) => {
+        const input = sine({ hz, sampleRate: SR, seconds: 2 });
+        const { out, latency } = await render(input, { semitones });
+        return { latency, outHz: dominantHz(steady(out, input.length), SR), length: out.length };
+      };
+
+      /** Pitch and brightness of a synthetic voice, with and without compensation. */
+      window.measureVoice = async ({ f0, semitones }) => {
+        const input = voiceLike({
+          f0,
+          sampleRate: SR,
+          seconds: 3,
+          vibratoCents: 35,
+          jitterCents: 8,
+          formants: FORMANTS,
+        });
+        const ref = steady(input, input.length);
+        const metrics = async (opts) => {
+          const { out } = await render(input, { semitones, ...opts });
+          const y = steady(out, input.length);
+          return { f0: fundamentalHz(y, SR).hz, centroid: spectralCentroidHz(y, SR) };
+        };
+        return {
+          input: { f0: fundamentalHz(ref, SR).hz, centroid: spectralCentroidHz(ref, SR) },
+          compensated: await metrics({ formantCompensation: true, formantBaseHz: FORMANT_BASE_HZ }),
+          naive: await metrics({ formantCompensation: false }),
+        };
+      };
+
+      window.metricsReady = true;
+    </script>
+  </body>
+</html>

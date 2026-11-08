@@ -7,10 +7,11 @@
   "license": "MIT",
   "scripts": {
     "build": "node scripts/build.mjs",
-    "test": "node scripts/build.mjs && node --test --test-concurrency=1 tests/dsp.test.mjs tests/extension.test.mjs",
+    "test": "node scripts/build.mjs && node --test --test-concurrency=1 tests/dsp.test.mjs tests/extension.test.mjs tests/firefox.test.mjs",
     "test:dsp": "node --test tests/dsp.test.mjs",
     "test:extension": "node scripts/build.mjs && node --test tests/extension.test.mjs",
-    "lint:firefox": "node scripts/build.mjs && web-ext lint -s dist/firefox"
+    "lint:firefox": "node scripts/build.mjs && web-ext lint -s dist/firefox",
+    "test:firefox": "node scripts/build.mjs && node --test tests/firefox.test.mjs"
   },
   "devDependencies": {
     "playwright-core": "^1.49.0"

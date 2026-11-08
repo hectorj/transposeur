@@ -23,7 +23,7 @@ independent.
 ## Install
 
 ```sh
-nix develop          # toolchain: node, chromium, web-ext
+nix develop          # toolchain: node, chromium, firefox, geckodriver, web-ext
 npm install
 npm run build        # -> dist/chrome, dist/firefox
 ```
@@ -50,10 +50,11 @@ Audio never leaves the machine.
 ## Testing
 
 ```sh
-npm test              # everything
-npm run test:dsp      # DSP behaviour, via the real WASM worklet
+npm test               # all 34 checks, in both browsers
+npm run test:dsp       # DSP behaviour, via the real WASM worklet (Chromium)
 npm run test:extension # the packed extension in headless Chromium
-npm run lint:firefox  # web-ext lint of the Firefox build
+npm run test:firefox   # the packed extension in headless Firefox, over WebDriver
+npm run lint:firefox   # web-ext lint of the Firefox build
 ```
 
 `test:dsp` renders synthetic signals through the actual shipped worklet in an `OfflineAudioContext`,
@@ -70,6 +71,23 @@ so it is deterministic and needs no audio hardware. It asserts, among other thin
 content script through `chrome.scripting` exactly as the popup does, and checks the graph is built,
 the page is never left silent or stalled, and nothing trips the page's CSP.
 
+`test:firefox` does the same against real headless Firefox. Playwright cannot install MV3 add-ons in
+Firefox, so this one goes through **geckodriver**, which can install an unsigned one temporarily
+([`tests/lib/webdriver.mjs`](tests/lib/webdriver.mjs) is a small WebDriver client over `fetch`). It
+also re-measures the DSP claims in Gecko — its AudioWorklet and WASM are a separate implementation,
+so the numbers are not assumed from the Chromium run. Metrics are computed in the page
+([`dsp-metrics.html`](tests/fixtures/dsp-metrics.html)) rather than shipping buffers over WebDriver.
+
+Two concessions, both forced by what a WebDriver session cannot do, and both confined to a staged
+copy in a temp dir — `content.js` under test is byte-identical to the shipped file:
+
+- `activeTab` is only granted by a real toolbar click, so the copy gets an explicit host permission
+  and registers the content script statically.
+- geckodriver refuses to execute scripts in privileged `moz-extension://` pages, so the popup itself
+  cannot be driven. [`ff-bridge.js`](tests/fixtures/ff-bridge.js) — test-only, lives in `tests/` —
+  relays calls from the page context into the content script's sandbox. The popup's wiring is the
+  same code in both browsers and is covered by the Chromium suite.
+
 ## Known limits
 
 | Limit | Detail |
@@ -78,7 +96,6 @@ the page is never left silent or stalled, and nothing trips the page's CSP.
 | DRM sites | Web Audio cannot tap EME-protected media (Netflix, Spotify web). YouTube is fine. |
 | Hostile CSP | A page whose CSP forbids WebAssembly cannot be shifted from its own realm. The popup says so instead of hanging; there is a test for it. YouTube's real CSP allows it. |
 | Firefox ≥ 142 | Required by the `data_collection_permissions` manifest key. |
-| Firefox verification | The Firefox build passes `web-ext lint` with 0 errors, but the audio path has not been run in a real Firefox — Playwright cannot load MV3 extensions there. Worth a manual pass before handing it over. |
 
 ## System-wide audio (not built)
 

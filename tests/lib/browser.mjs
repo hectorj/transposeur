@@ -36,7 +36,10 @@ export async function startServer() {
   const server = http.createServer(async (req, res) => {
     const url = new URL(req.url, 'http://localhost');
     if (url.pathname === '/favicon.ico') {
-      res.writeHead(204).end();
+      // a real 1x1 GIF: an empty 204 makes Firefox log a MIME-sniffing error
+      const gif = Buffer.from('R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7', 'base64');
+      res.writeHead(200, { 'content-type': 'image/gif', 'content-length': gif.length });
+      res.end(gif);
       return;
     }
     if (url.pathname === '/tone.wav') {
@@ -61,8 +64,12 @@ export async function startServer() {
     const csp = Object.keys(CSPS).find((p) => url.pathname.startsWith(`/${p}/`));
     const rel =
       url.pathname === '/' ? '/harness.html' : csp ? url.pathname.slice(csp.length + 1) : url.pathname;
-    const file = rel.startsWith('/vendor/')
-      ? path.join(root, 'extension', rel)
+    // /ext and /lib let a fixture page import the real shipped module and the
+    // test analysis helpers, so metrics can be computed in the browser
+    const roots = { '/vendor/': 'extension', '/ext/': 'extension', '/lib/': 'tests/lib' };
+    const prefix = Object.keys(roots).find((p) => rel.startsWith(p));
+    const file = prefix
+      ? path.join(root, roots[prefix], prefix === '/vendor/' ? rel : rel.slice(prefix.length - 1))
       : path.join(root, 'tests/fixtures', rel);
     if (!file.startsWith(root)) {
       res.writeHead(403).end();

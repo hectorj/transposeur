@@ -21,13 +21,17 @@
             gcc # native DSP test harness
             gnumake
 
-            chromium # headless browser for the integration tests
+            chromium # headless browser for the Chrome integration tests
+            firefox # ... and the Firefox ones, driven over WebDriver
+            geckodriver # the only way to install an unsigned MV3 add-on
           ];
 
           # playwright-core drives this binary directly, so no browser download
           # (Playwright's own downloads are not patchelf'd for NixOS anyway).
           env = {
             CHROMIUM_BIN = "${pkgs.chromium}/bin/chromium";
+            FIREFOX_BIN = "${pkgs.firefox}/bin/firefox";
+            GECKODRIVER_BIN = "${pkgs.geckodriver}/bin/geckodriver";
             PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD = "1";
           };
 
@@ -38,6 +42,7 @@
               npm test                everything below
               npm run test:dsp        pitch ratio / formant / tempo checks
               npm run test:extension  packed extension in Chromium
+              npm run test:firefox    packed extension in Firefox
               npm run lint:firefox    web-ext lint of the Firefox build
               npm run build           pack extension/ for Chrome and Firefox
             BANNER

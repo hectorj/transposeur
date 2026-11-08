@@ -113,15 +113,27 @@ export async function launchBrowser(extra = []) {
  * Extensions only load in a persistent context with a visible-ish browser, so
  * the new headless mode is requested explicitly via --headless=new.
  */
-export async function launchWithExtension(extensionDir, userDataDir) {
+export async function launchWithExtension(extensionDir, userDataDir, extraArgs = []) {
   return chromium.launchPersistentContext(userDataDir, {
     executablePath: CHROMIUM,
     args: launchArgs([
       '--headless=new',
       `--disable-extensions-except=${extensionDir}`,
       `--load-extension=${extensionDir}`,
+      ...extraArgs,
     ]),
   });
+}
+
+/** Resolves the id Chromium assigned to the loaded extension. */
+export async function extensionId(context, name) {
+  const page = await context.newPage();
+  await page.goto('chrome://extensions-internals/');
+  const entries = JSON.parse(await page.evaluate(() => document.body.innerText));
+  await page.close();
+  const found = entries.find((e) => e.name === name);
+  if (!found) throw new Error(`extension "${name}" is not installed`);
+  return found.id;
 }
 
 /** Collects page console errors / failed requests for CSP regressions. */

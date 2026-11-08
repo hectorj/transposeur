@@ -2,6 +2,16 @@ import { DEFAULTS, isDefault, load, save, clear } from './settings.js';
 
 const api = globalThis.browser ?? globalThis.chrome;
 
+/** Falls back to the key, so a missing string shows up rather than going blank. */
+const t = (key, ...subs) => api.i18n.getMessage(key, subs.map(String)) || key;
+
+for (const el of document.querySelectorAll('[data-i18n]')) {
+  el.textContent = t(el.dataset.i18n);
+}
+for (const el of document.querySelectorAll('[data-i18n-aria]')) {
+  el.setAttribute('aria-label', t(el.dataset.i18nAria));
+}
+
 const pitch = document.getElementById('pitch');
 const rate = document.getElementById('rate');
 const pitchVal = document.getElementById('pitchVal');
@@ -34,7 +44,7 @@ async function drive(method, arg = null) {
 
 function render(state) {
   if (!state) {
-    status.textContent = 'no access to this page';
+    status.textContent = t('statusNoAccess');
     status.className = 'err';
     return;
   }
@@ -45,27 +55,43 @@ function render(state) {
   }
   status.className = '';
   if (!state.hasMedia) {
-    status.textContent = 'no audio or video found';
+    status.textContent = t('statusNoMedia');
   } else if (state.active) {
-    status.textContent = `shifting · ${state.latencyMs} ms delay`;
+    status.textContent = t('statusShifting', state.latencyMs);
   } else {
-    status.textContent = 'ready';
+    status.textContent = t('statusReady');
   }
 }
 
 /**
  * Semitones, with the equivalent in tones spelled out — musicians think in
  * tones, and a bare "+3" reads as three of whatever the slider counts.
+ *
+ * Which plural form applies is language-specific and not guessable: English
+ * says "1½ tones", French says "1½ ton", because French counts anything below
+ * two as singular. Intl.PluralRules knows both, so neither is hard-coded.
+ *
+ * The locale comes from the catalogue rather than from getUILanguage() or
+ * @@ui_locale: both can report en-US while getMessage is serving French, and
+ * then the rules would not match the words they are inflecting.
  */
+const plural = (() => {
+  try {
+    return new Intl.PluralRules(t('localeTag'));
+  } catch {
+    return new Intl.PluralRules('en');
+  }
+})();
+
 function pitchLabel(semitones) {
   if (semitones === 0) return '0';
   const n = Math.abs(semitones);
-  const whole = Math.floor(n / 2);
-  const half = n % 2;
-  const tones = whole
-    ? `${whole}${half ? '½' : ''} tone${whole > 1 || half ? 's' : ''}`
-    : '½ tone';
-  return `${semitones > 0 ? '+' : '−'}${n} (${tones})`;
+  const tones = n / 2;
+  const sign = semitones > 0 ? '+' : '−';
+  // Half a tone sits outside the plural rules: English would call it "½ tones".
+  if (tones === 0.5) return `${sign}${n} (${t('halfTone')})`;
+  const amount = `${Math.floor(tones)}${n % 2 ? '½' : ''}`;
+  return `${sign}${n} (${t(plural.select(tones) === 'one' ? 'tonesOne' : 'tonesOther', amount)})`;
 }
 
 const label = () => {

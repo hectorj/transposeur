@@ -128,7 +128,7 @@
       // Most likely cause is a page CSP that blocks WebAssembly outright, which
       // cannot be worked around from the page's own realm.
       lastError = /timed out/.test(e?.message)
-        ? "this page's security policy blocks the audio engine"
+        ? api.i18n.getMessage('errorBlockedByCsp')
         : String(e?.message || e);
       if (graph) route(graph, false); // never leave the page silent
     }

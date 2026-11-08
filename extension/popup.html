@@ -120,27 +120,27 @@
     <h1>Pitch Shifter</h1>
 
     <div class="row">
-      <div class="label"><span>Pitch (semitones)</span><span class="val" id="pitchVal">0</span></div>
+      <div class="label"><span data-i18n="pitchLabel">Pitch (semitones)</span><span class="val" id="pitchVal">0</span></div>
       <div class="control">
-        <button class="step" data-target="pitch" data-delta="-1" aria-label="Down one semitone">−</button>
+        <button class="step" data-target="pitch" data-delta="-1" data-i18n-aria="stepPitchDown" aria-label="Down one semitone">−</button>
         <input type="range" id="pitch" min="-12" max="12" step="1" value="0" />
-        <button class="step" data-target="pitch" data-delta="1" aria-label="Up one semitone">+</button>
+        <button class="step" data-target="pitch" data-delta="1" data-i18n-aria="stepPitchUp" aria-label="Up one semitone">+</button>
       </div>
       <div class="ticks"><span>−12</span><span>0</span><span>+12</span></div>
     </div>
 
     <div class="row">
-      <div class="label"><span>Tempo</span><span class="val" id="rateVal">100%</span></div>
+      <div class="label"><span data-i18n="tempoLabel">Tempo</span><span class="val" id="rateVal">100%</span></div>
       <div class="control">
-        <button class="step" data-target="rate" data-delta="-5" aria-label="Slower by 5 percent">−</button>
+        <button class="step" data-target="rate" data-delta="-5" data-i18n-aria="stepTempoDown" aria-label="Slower by 5 percent">−</button>
         <input type="range" id="rate" min="50" max="150" step="5" value="100" />
-        <button class="step" data-target="rate" data-delta="5" aria-label="Faster by 5 percent">+</button>
+        <button class="step" data-target="rate" data-delta="5" data-i18n-aria="stepTempoUp" aria-label="Faster by 5 percent">+</button>
       </div>
       <div class="ticks"><span>50%</span><span>100%</span><span>150%</span></div>
     </div>
 
     <footer>
-      <button id="reset">Reset</button>
+      <button id="reset" data-i18n="reset">Reset</button>
       <span id="status">…</span>
     </footer>
 

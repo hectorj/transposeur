@@ -45,6 +45,10 @@ I cannot create accounts, accept terms, pay fees, or submit on your behalf.
 - [ ] **Pick a less generic name.** "Pitch Shifter" is likely taken and reads as a category, not a
       product. Something like "Transpose" or a name of your own would fare better in both review and
       search. It appears in `extension/manifest.json`.
+- [ ] **Localised store listings.** The add-on itself is English and French; the manifest
+      description comes from `extension/_locales/*/messages.json` automatically. Both stores keep
+      store *listings* separately, so add a French listing in each dashboard too, or French users
+      see the English blurb.
 - [ ] **Write the store description** — what it does, and the honest limits (the ~120 ms delay, no
       DRM sites). Both stores reject descriptions that oversell.
 - [ ] **Screenshots.** At minimum the popup over a YouTube page. Chrome wants 1280×800 or 640×400.

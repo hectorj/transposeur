@@ -2,7 +2,8 @@
   "manifest_version": 3,
   "name": "Pitch Shifter",
   "version": "0.1.0",
-  "description": "Transpose and slow down any audio or video in a page — without the chipmunk effect.",
+  "description": "__MSG_appDescription__",
+  "default_locale": "en",
   "permissions": ["activeTab", "scripting", "storage"],
   "icons": {
     "16": "icons/icon-16.png",

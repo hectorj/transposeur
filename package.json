@@ -7,7 +7,7 @@
   "license": "MIT",
   "scripts": {
     "build": "node scripts/build.mjs",
-    "test": "node scripts/build.mjs && node --test --test-concurrency=1 tests/settings.test.mjs tests/dsp.test.mjs tests/extension.test.mjs tests/firefox.test.mjs",
+    "test": "node scripts/build.mjs && node --test --test-concurrency=1 tests/settings.test.mjs tests/i18n.test.mjs tests/dsp.test.mjs tests/extension.test.mjs tests/firefox.test.mjs",
     "test:dsp": "node --test tests/dsp.test.mjs",
     "test:extension": "node scripts/build.mjs && node --test tests/extension.test.mjs",
     "lint:firefox": "node scripts/build.mjs && web-ext lint -s dist/firefox",

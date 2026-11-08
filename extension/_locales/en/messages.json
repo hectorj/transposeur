@@ -1,0 +1,43 @@
+{
+  "localeTag": {
+    "message": "en",
+    "description": "BCP-47 tag for THIS catalogue. Plural rules are taken from here, not from the browser UI locale: the two can disagree, and the rules must match the words actually on screen."
+  },
+  "appDescription": {
+    "message": "Transpose and slow down any audio or video in a page — without the chipmunk effect.",
+    "description": "Store listing and toolbar tooltip."
+  },
+  "pitchLabel": { "message": "Pitch (semitones)" },
+  "tempoLabel": { "message": "Tempo" },
+  "reset": { "message": "Reset" },
+
+  "halfTone": {
+    "message": "½ tone",
+    "description": "One semitone, spelled as an interval. Kept apart from the plural forms because English plural rules would render 0.5 as '½ tones'."
+  },
+  "tonesOne": {
+    "message": "$N$ tone",
+    "placeholders": { "n": { "content": "$1", "example": "1" } }
+  },
+  "tonesOther": {
+    "message": "$N$ tones",
+    "placeholders": { "n": { "content": "$1", "example": "1½" } }
+  },
+
+  "statusReady": { "message": "ready" },
+  "statusNoMedia": { "message": "no audio or video found" },
+  "statusNoAccess": { "message": "no access to this page" },
+  "statusShifting": {
+    "message": "shifting · $MS$ ms delay",
+    "placeholders": { "ms": { "content": "$1", "example": "120" } }
+  },
+  "errorBlockedByCsp": {
+    "message": "this page's security policy blocks the audio engine",
+    "description": "Shown when a page forbids WebAssembly, which cannot be worked around."
+  },
+
+  "stepPitchUp": { "message": "Up one semitone" },
+  "stepPitchDown": { "message": "Down one semitone" },
+  "stepTempoUp": { "message": "Faster by 5 percent" },
+  "stepTempoDown": { "message": "Slower by 5 percent" }
+}

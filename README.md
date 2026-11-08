@@ -36,6 +36,12 @@ Click the toolbar icon, then drag a slider or use its **+ / −** buttons. Pitch
 percentage (50–150%). *Reset* returns both to normal and takes the shifter out of the audio path
 entirely.
 
+The interface follows the browser's language — **English and French** are included. Adding another
+is one file: copy `extension/_locales/en/messages.json` to `_locales/<lang>/`, translate the
+`message` values, and set `localeTag` to that language's BCP-47 tag (the plural rules are taken from
+it, so it has to be right). `npm test` then checks the new catalogue for missing keys and
+placeholders automatically.
+
 **Settings are per tab.** Two songs open in two tabs keep two different transpositions, and a tab
 remembers its own setting across reloads and in-page navigation for as long as the browser runs.
 Nothing is written to disk.
@@ -57,7 +63,7 @@ Audio never leaves the machine.
 ## Testing
 
 ```sh
-npm test               # all 44 checks, in both browsers
+npm test               # all 51 checks, in both browsers
 npm run test:dsp       # DSP behaviour, via the real WASM worklet (Chromium)
 npm run test:extension # the packed extension in headless Chromium
 npm run test:firefox   # the packed extension in headless Firefox, over WebDriver
@@ -79,6 +85,10 @@ so it is deterministic and needs no audio hardware. It asserts, among other thin
 `test:extension` loads the built extension into Chromium, plays a real media element, drives the
 content script through `chrome.scripting` exactly as the popup does, and checks the graph is built,
 the page is never left silent or stalled, and nothing trips the page's CSP.
+
+`tests/i18n.test.mjs` checks every catalogue defines the same keys and placeholders, then loads the
+popup in a French-locale Chromium and asserts the rendered text — including that intervals follow
+French plural rules ("1½ ton") rather than English ones ("1½ tones").
 
 `test:firefox` does the same against real headless Firefox. Playwright cannot install MV3 add-ons in
 Firefox, so this one goes through **geckodriver**, which can install an unsigned one temporarily

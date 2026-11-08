@@ -130,21 +130,26 @@ describe('the packed extension', () => {
     assert.match(await extPage.textContent('.label'), /semitones/, 'the pitch unit must be stated');
   });
 
-  test('ships a toolbar icon at every size both stores ask for', async () => {
-    const mf = JSON.parse(await fs.readFile(path.join(root, 'dist/chrome/manifest.json'), 'utf8'));
-    const wanted = ['16', '32', '48', '128'];
-    assert.deepEqual(Object.keys(mf.icons).sort(), [...wanted].sort());
-    assert.deepEqual(Object.keys(mf.action.default_icon).sort(), [...wanted].sort());
+  // Checked for both builds: the Firefox package is assembled separately, and
+  // an icon missing only there is exactly the kind of gap nobody notices.
+  for (const target of ['chrome', 'firefox']) {
+    test(`the ${target} build ships a toolbar icon at every size`, async () => {
+      const dir = path.join(root, 'dist', target);
+      const mf = JSON.parse(await fs.readFile(path.join(dir, 'manifest.json'), 'utf8'));
+      const wanted = ['16', '32', '48', '128'];
+      assert.deepEqual(Object.keys(mf.icons).sort(), [...wanted].sort());
+      assert.deepEqual(Object.keys(mf.action.default_icon).sort(), [...wanted].sort());
 
-    for (const size of wanted) {
-      const file = path.join(root, 'dist/chrome', mf.icons[size]);
-      const png = await fs.readFile(file);
-      assert.equal(png.subarray(1, 4).toString(), 'PNG', `${file} should be a PNG`);
-      // IHDR carries the real dimensions, which must match what the manifest claims
-      assert.equal(png.readUInt32BE(16), Number(size), `${file} width`);
-      assert.equal(png.readUInt32BE(20), Number(size), `${file} height`);
-    }
-  });
+      for (const size of wanted) {
+        const file = path.join(dir, mf.icons[size]);
+        const png = await fs.readFile(file);
+        assert.equal(png.subarray(1, 4).toString(), 'PNG', `${file} should be a PNG`);
+        // IHDR carries the real dimensions, which must match what the manifest claims
+        assert.equal(png.readUInt32BE(16), Number(size), `${file} width`);
+        assert.equal(png.readUInt32BE(20), Number(size), `${file} height`);
+      }
+    });
+  }
 
   // The slider counts semitones; a musician asking for "a tone and a half"
   // needs to see that this is 3 of them, not 1.5.

@@ -70,8 +70,8 @@ I cannot create accounts, accept terms, pay fees, or submit on your behalf.
 Ready to paste. Keep the limits in: both stores take a dim view of a description that only sells,
 and a teacher who discovers the delay on their own will trust the rest of it less.
 
-Suggested category: **Audio/Video**. Licence: **MIT**. Privacy policy: not required — no data is
-collected, and the Firefox manifest already declares that.
+AMO category: **Photos, Music & Videos**. Licence: **MIT**. Privacy policy: not required — no
+data is collected, and the Firefox manifest already declares that.
 
 ### English — summary (AMO allows 250 characters)
 
@@ -131,19 +131,49 @@ collected, and the Firefox manifest already declares that.
 
 ## Notes to Reviewer
 
-AMO's validator flags two warnings as "issues that can lead to rejections":
+AMO has one field for this, and it has to carry two things: why the validator's warnings are
+benign, and how to rebuild the generated code. Paste the whole block.
 
-> UNSAFE_VAR_ASSIGNMENT — Unsafe call to import for argument 0
-
-Both are the dynamic `import()` calls in `content.js`. They are not remote code: the argument is
-`runtime.getURL()` of a file bundled in the add-on and listed in `web_accessible_resources`.
-Pre-empt the question in the submission's reviewer notes:
-
-> The two UNSAFE_VAR_ASSIGNMENT warnings are the dynamic imports in `content.js`. Both load files
-> packaged inside the add-on, addressed through `browser.runtime.getURL()` — never a remote URL and
-> never a value derived from page content. A content script cannot be an ES module, so a dynamic
-> import is the only way to load the WASM audio module and the shared settings module from the
-> extension's own origin. No code is fetched at runtime from anywhere outside the package.
+> **About the two UNSAFE_VAR_ASSIGNMENT warnings**
+>
+> Both are the dynamic `import()` calls in `content.js`. Each loads a file packaged inside this
+> add-on, addressed through `browser.runtime.getURL()` and declared in `web_accessible_resources`.
+> The argument is never a remote URL and never derived from page content. A content script cannot
+> be an ES module, so a dynamic import is the only way to load the WASM audio module and the shared
+> settings module from the extension's own origin. Nothing is fetched at runtime from outside the
+> package.
+>
+> **About the generated code**
+>
+> `vendor/SignalsmithStretch.mjs` is the official prebuilt WASM release of Signalsmith Stretch
+> (MIT), used unmodified from the upstream repository at the commit recorded in
+> `third_party/signalsmith-stretch/VENDORED_COMMIT`. Its licence travels with it in
+> `third_party/signalsmith-stretch/LICENSE.txt`.
+>
+> To rebuild that file from its C++ sources, from an upstream checkout at that commit:
+>
+>     ./web/emscripten/compile.sh web/emscripten/main.cpp web/release/SignalsmithStretch.mjs SignalsmithStretch
+>
+> To rebuild this add-on from the attached source archive (requires Nix):
+>
+>     nix develop
+>     npm install
+>     npm run build        # produces dist/firefox
+>
+> The build is deterministic: `dist/firefox` comes out file-for-file identical to the contents of
+> the uploaded package (the .zip container itself carries timestamps, so compare the files, not the
+> archive).
+>
+> Everything else in the add-on is plain, unminified JavaScript. `npm run build` copies `extension/`
+> to `dist/firefox/` and patches only the manifest, adding the Firefox add-on id and the
+> data-collection declaration.
+>
+> **Testing it**
+>
+> No account or credentials are needed. Open any page with audio or video — youtube.com is the
+> intended case — start playback, click the toolbar button, and move the Pitch slider off zero.
+> Pitch is in semitones; Tempo is independent of it. The interface is English and French, following
+> the browser language.
 
 ## Firefox for Android
 

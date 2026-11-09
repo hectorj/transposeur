@@ -22,19 +22,11 @@ independent.
 
 ## Install
 
-```sh
-nix develop          # toolchain: node, chromium, firefox, geckodriver, web-ext, resvg
-npm install
-npm run build        # -> dist/chrome, dist/firefox
-```
+**Firefox:** [addons.mozilla.org/firefox/addon/transposeur](https://addons.mozilla.org/en-US/firefox/addon/transposeur/)
 
-Every `npm run` script below expects that shell — `npm run build`, `package` and `icons` shell out
-to `zip` and `resvg`, and the test suites need the browsers. Either stay inside `nix develop`, or
-prefix one-off commands with `nix develop --command`. A script that cannot find its tools says so
-and names the fix rather than failing with a spawn error.
+Chrome is not on the Web Store yet; build it from source below.
 
-- **Chrome**: `chrome://extensions` → Developer mode → *Load unpacked* → `dist/chrome`
-- **Firefox**: `about:debugging#/runtime/this-firefox` → *Load Temporary Add-on* → `dist/firefox/manifest.json`
+## Using it
 
 Click the toolbar icon, then drag a slider or use its **+ / −** buttons. Pitch is in **semitones**
 (±12, i.e. ±6 tones) — the readout spells out the interval, so +3 reads "1½ tones". Tempo is a
@@ -50,6 +42,27 @@ placeholders automatically.
 **Settings are per tab.** Two songs open in two tabs keep two different transpositions, and a tab
 remembers its own setting across reloads and in-page navigation for as long as the browser runs.
 Nothing is written to disk.
+
+## Build from source
+
+```sh
+nix develop          # toolchain: node, chromium, firefox, geckodriver, web-ext, resvg
+npm install
+npm run build        # -> dist/chrome, dist/firefox
+```
+
+Every `npm run` script expects that shell — `build`, `package` and `icons` shell out to `zip` and
+`resvg`, and the test suites need the browsers. Either stay inside `nix develop`, or prefix one-off
+commands with `nix develop --command`. A script that cannot find its tools says so and names the
+fix rather than failing with a spawn error.
+
+Then load the unpacked build:
+
+- **Chrome**: `chrome://extensions` → Developer mode → *Load unpacked* → `dist/chrome`
+- **Firefox**: `about:debugging#/runtime/this-firefox` → *Load Temporary Add-on* → `dist/firefox/manifest.json`
+
+Firefox drops temporary add-ons on restart, and Chrome nags about developer mode — fine for
+hacking on it, not for daily use.
 
 ## How it works
 

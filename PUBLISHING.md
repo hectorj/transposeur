@@ -1,16 +1,16 @@
 # Publishing
 
 ```sh
-npm run build && npm run package
+nix develop --command npm run package
 ```
 
-produces, in `dist/`:
+produces, in `dist/` (names follow the manifest, so a rename carries through):
 
 | File | For |
 | --- | --- |
-| `pitch-shifter-chrome-<v>.zip` | Chrome Web Store upload |
-| `pitch-shifter-firefox-<v>.zip` | addons.mozilla.org upload |
-| `pitch-shifter-source-<v>.zip` | AMO's required source archive (see below) |
+| `transposeur-chrome-<v>.zip` | Chrome Web Store upload |
+| `transposeur-firefox-<v>.zip` | addons.mozilla.org upload |
+| `transposeur-source-<v>.zip` | AMO's source archive (see "Notes to Reviewer") |
 
 ## Decide the goal first
 
@@ -40,15 +40,13 @@ I cannot create accounts, accept terms, pay fees, or submit on your behalf.
 
 ## Before the first submission
 
-- [ ] **Confirm the add-on id.** `scripts/build.mjs` sets `GECKO_ID`. It identifies *this* add-on,
-      not you — AMO ties an id to exactly one listing, so anything else you publish later needs its
-      own. Hence the add-on's name in the local part and a domain you control as the namespace. It
-      is permanent from the first signing, is publicly visible, and is never used for contact; it
-      need not be an email at all (a GUID is equally valid).
+- [x] **Add-on id settled:** `transposeur@hectorj.net`, in `scripts/build.mjs` as `GECKO_ID`. It
+      identifies *this* add-on, not you — AMO ties an id to exactly one listing, so anything else
+      published later needs its own. Permanent from the first signing, publicly visible, never used
+      for contact.
 - [x] **Name checked.** **Transposeur** was free on AMO as of 2026-11-09. It lives in
       `extension/manifest.json` and is deliberately not translated — it is the brand in both
       languages.
-- [x] **Add-on id settled.** `transposeur@hectorj.net`.
 - [ ] **Localised store listings.** The add-on itself is English and French; the manifest
       description comes from `extension/_locales/*/messages.json` automatically. Both stores keep
       store *listings* separately, so add a French listing in each dashboard too, or French users
@@ -59,7 +57,8 @@ I cannot create accounts, accept terms, pay fees, or submit on your behalf.
 - [ ] **Permission justifications.** Chrome asks for one per permission:
       - `activeTab` + `scripting` — inject the audio processing into the tab the user is on, only
         when they click the toolbar button.
-      - `storage` — remember the last pitch and tempo between sessions.
+      - `storage` — remember each tab's pitch and tempo while the browser is open. Written to
+        `storage.session`, which is in-memory and cleared on exit; nothing is persisted to disk.
       - No host permissions are requested, which is worth saying explicitly; it helps review.
 - [ ] **Data disclosure: none.** Audio is processed in the page and nothing is transmitted. Firefox
       declares this already via `data_collection_permissions: { required: ['none'] }` in the built
@@ -204,39 +203,43 @@ onto one already published.
 
 ## The AMO source-code requirement
 
-AMO requires a source archive whenever an add-on contains code that is generated, compiled or
-minified, because reviewers have to be able to read what they are approving. This add-on ships
+AMO requires a source archive whenever an add-on contains generated, compiled or minified code,
+because reviewers have to be able to read what they are approving. This add-on ships
 `vendor/SignalsmithStretch.mjs` — an emscripten build with the WASM embedded as base64 — so the
-requirement applies. `npm run package` produces the archive; in the AMO form, give build
-instructions along these lines:
-
-> The vendored file `extension/vendor/SignalsmithStretch.mjs` is the official prebuilt WASM release
-> of Signalsmith Stretch (MIT), taken unmodified from the upstream repository at the commit recorded
-> in `third_party/signalsmith-stretch/VENDORED_COMMIT`. To rebuild it from C++ sources:
-> `nix develop .#wasm`, then run `web/emscripten/compile.sh` from that upstream checkout.
-> Everything else in the add-on is plain, unminified JavaScript; `npm run build` copies
-> `extension/` to `dist/firefox/` and patches only the manifest.
+requirement applies. `npm run package` produces `transposeur-source-<v>.zip`; attach it, and paste
+the build instructions from "Notes to Reviewer" above.
 
 Keep `third_party/signalsmith-stretch/LICENSE.txt` in the package — the MIT licence requires the
 copyright notice to travel with the code, and reviewers check.
 
+`nix develop .#wasm` provides the emscripten toolchain, if the WASM module ever has to be rebuilt
+from the C++ sources rather than taken from upstream.
+
 ## Signing an unlisted Firefox build
 
-Get API credentials from the AMO developer hub, then:
+Get API credentials from the AMO developer hub and put them in `.env.local` (gitignored, and
+`chmod 600`):
 
 ```sh
-export WEB_EXT_API_KEY=user:...
-export WEB_EXT_API_SECRET=...
-npm run build
-web-ext sign -s dist/firefox --channel=unlisted --artifacts-dir=dist
+WEB_EXT_API_KEY=user:...
+WEB_EXT_API_SECRET=...
 ```
 
-The signed `.xpi` lands in `dist/` and installs in release Firefox by opening the file. Keep the
-credentials out of the repo — environment only.
+Then:
+
+```sh
+nix develop --command npm run sign:firefox
+```
+
+That builds and signs through `scripts/with-env.sh`, which sources the file into the command's
+environment — so the values never reach the shell history or the process list, and are never
+printed. Do not `export` them on the command line instead.
+
+The signed `.xpi` lands in `dist/` and installs in release Firefox by opening the file.
 
 ## Releasing an update
 
 1. Bump `version` in `extension/manifest.json` — both stores reject a re-used version.
 2. `npm test` — all suites green.
-3. `npm run build && npm run package`.
+3. `nix develop --command npm run package`.
 4. Upload. For AMO, attach the new source archive too.

@@ -129,6 +129,49 @@ collected, and the Firefox manifest already declares that.
 > imperceptible pour travailler mais visible sur un gros plan de quelqu'un qui parle ; et elle ne
 > peut rien faire sur les services protégés par DRM comme Netflix. YouTube fonctionne.
 
+## Notes to Reviewer
+
+AMO's validator flags two warnings as "issues that can lead to rejections":
+
+> UNSAFE_VAR_ASSIGNMENT — Unsafe call to import for argument 0
+
+Both are the dynamic `import()` calls in `content.js`. They are not remote code: the argument is
+`runtime.getURL()` of a file bundled in the add-on and listed in `web_accessible_resources`.
+Pre-empt the question in the submission's reviewer notes:
+
+> The two UNSAFE_VAR_ASSIGNMENT warnings are the dynamic imports in `content.js`. Both load files
+> packaged inside the add-on, addressed through `browser.runtime.getURL()` — never a remote URL and
+> never a value derived from page content. A content script cannot be an ES module, so a dynamic
+> import is the only way to load the WASM audio module and the shared settings module from the
+> extension's own origin. No code is fetched at runtime from anywhere outside the package.
+
+## Firefox for Android
+
+**Not claimed as compatible, and not tested.** When submitting a version, leave *Firefox for
+Android* unchecked unless it has actually been tried on a device.
+
+What is known: the manifest declares nothing Android-incompatible — `web-ext lint` reports no
+`KEY_FIREFOX_ANDROID_*` warnings at `strict_min_version: 142.0`, and it does check for them (at
+140.0 it flagged `data_collection_permissions`).
+
+What is unknown, and needs a real device:
+
+- whether `createMediaElementSource`, the AudioWorklet and the WASM module behave as they do on
+  desktop Gecko;
+- whether the popup is usable — it is laid out at a fixed 268px, which suits a desktop panel, not a
+  phone;
+- how Android's media handling (backgrounding, picture-in-picture, the system player) interacts
+  with an audio graph tapped off the media element.
+
+To test, connect a phone over USB with debugging enabled and `adb` on PATH, then:
+
+```sh
+npm run run:android
+```
+
+If it works, enable Android compatibility on the *next* version rather than retrofitting the claim
+onto one already published.
+
 ## The AMO source-code requirement
 
 AMO requires a source archive whenever an add-on contains code that is generated, compiled or

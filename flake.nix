@@ -47,6 +47,8 @@
               npm run lint:firefox    web-ext lint of the Firefox build
               npm run build           pack extension/ for Chrome and Firefox
               npm run icons           redraw the toolbar icon from assets/icon.svg
+              npm run package         store upload artifacts -> dist/*.zip
+              npm run sign:firefox    build + sign an unlisted xpi (needs .env.local)
             BANNER
           '';
         };

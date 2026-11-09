@@ -11,8 +11,11 @@ import path from 'node:path';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { fileURLToPath } from 'node:url';
+import { requireTools } from './lib/tools.mjs';
 
 const run = promisify(execFile);
+
+await requireTools('zip');
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const dist = path.join(root, 'dist');
 

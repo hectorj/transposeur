@@ -28,6 +28,11 @@ npm install
 npm run build        # -> dist/chrome, dist/firefox
 ```
 
+Every `npm run` script below expects that shell — `npm run build`, `package` and `icons` shell out
+to `zip` and `resvg`, and the test suites need the browsers. Either stay inside `nix develop`, or
+prefix one-off commands with `nix develop --command`. A script that cannot find its tools says so
+and names the fix rather than failing with a spawn error.
+
 - **Chrome**: `chrome://extensions` → Developer mode → *Load unpacked* → `dist/chrome`
 - **Firefox**: `about:debugging#/runtime/this-firefox` → *Load Temporary Add-on* → `dist/firefox/manifest.json`
 

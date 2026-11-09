@@ -141,4 +141,8 @@ from the C++ sources.
 
 ## Licence
 
-MIT, matching the vendored DSP library.
+MIT — see [LICENSE](LICENSE).
+
+The vendored DSP library is also MIT but is separately copyright Signalsmith Audio Ltd; its notice
+travels with it in [`third_party/signalsmith-stretch/LICENSE.txt`](third_party/signalsmith-stretch/LICENSE.txt)
+and must stay in any redistributed package.

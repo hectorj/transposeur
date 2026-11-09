@@ -15,7 +15,7 @@ const src = path.join(root, 'extension');
 const dist = path.join(root, 'dist');
 
 // Permanent once published — AMO will not let it change. See PUBLISHING.md.
-const GECKO_ID = 'pitch-shifter@hectorj.net';
+const GECKO_ID = 'mozilla@example.com';
 
 await fs.rm(dist, { recursive: true, force: true });
 

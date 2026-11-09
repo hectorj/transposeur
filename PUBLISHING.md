@@ -40,8 +40,11 @@ I cannot create accounts, accept terms, pay fees, or submit on your behalf.
 
 ## Before the first submission
 
-- [ ] **Change the add-on id.** `scripts/build.mjs` sets `GECKO_ID`. It currently uses a domain you
-      control; make sure that is what you want permanently, because the id cannot change later.
+- [ ] **Confirm the add-on id.** `scripts/build.mjs` sets `GECKO_ID`. It identifies *this* add-on,
+      not you — AMO ties an id to exactly one listing, so anything else you publish later needs its
+      own. Hence the add-on's name in the local part and a domain you control as the namespace. It
+      is permanent from the first signing, is publicly visible, and is never used for contact; it
+      need not be an email at all (a GUID is equally valid).
 - [ ] **Pick a less generic name.** "Pitch Shifter" is likely taken and reads as a category, not a
       product. Something like "Transpose" or a name of your own would fare better in both review and
       search. It appears in `extension/manifest.json`.

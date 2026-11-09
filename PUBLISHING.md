@@ -45,9 +45,10 @@ I cannot create accounts, accept terms, pay fees, or submit on your behalf.
       own. Hence the add-on's name in the local part and a domain you control as the namespace. It
       is permanent from the first signing, is publicly visible, and is never used for contact; it
       need not be an email at all (a GUID is equally valid).
-- [ ] **Pick a less generic name.** "Pitch Shifter" is likely taken and reads as a category, not a
-      product. Something like "Transpose" or a name of your own would fare better in both review and
-      search. It appears in `extension/manifest.json`.
+- [ ] **Check the name is free.** The add-on is called **Transposeur**. A listed submission is
+      rejected if the name collides with an existing AMO add-on, so search for it before submitting.
+      It lives in `extension/manifest.json` and is deliberately not translated — it is the brand in
+      both languages.
 - [ ] **Localised store listings.** The add-on itself is English and French; the manifest
       description comes from `extension/_locales/*/messages.json` automatically. Both stores keep
       store *listings* separately, so add a French listing in each dashboard too, or French users

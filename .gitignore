@@ -2,3 +2,7 @@ node_modules/
 dist/
 *.zip
 *.xpi
+
+# secrets — never commit
+.env.local
+.env*.local

@@ -101,7 +101,7 @@ describe('the packed extension', () => {
     extPage = await context.newPage();
     await extPage.goto('chrome://extensions-internals/');
     const entries = JSON.parse(await extPage.evaluate(() => document.body.innerText));
-    const mine = entries.find((e) => e.name === 'Pitch Shifter');
+    const mine = entries.find((e) => e.name === 'Transposeur');
     assert.ok(mine, 'the extension should be installed');
     assert.deepEqual(mine.install_warnings ?? [], [], 'manifest should produce no install warnings');
     assert.equal(mine.registry_status, 'ENABLED');

@@ -1,9 +1,9 @@
 {
-  "name": "pitch-shifter",
+  "name": "transposeur",
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Formant-preserving pitch + tempo control for audio/video in Chrome and Firefox",
+  "description": "Transposeur \u2014 formant-preserving pitch and tempo control for audio and video in Chrome and Firefox",
   "license": "MIT",
   "scripts": {
     "build": "node scripts/build.mjs",
@@ -13,7 +13,8 @@
     "lint:firefox": "node scripts/build.mjs && web-ext lint -s dist/firefox",
     "test:firefox": "node scripts/build.mjs && node --test tests/firefox.test.mjs",
     "icons": "node scripts/icons.mjs",
-    "package": "node scripts/build.mjs && node scripts/package.mjs"
+    "package": "node scripts/build.mjs && node scripts/package.mjs",
+    "sign:firefox": "node scripts/build.mjs && ./scripts/with-env.sh web-ext sign -s dist/firefox --channel=unlisted --artifacts-dir=dist"
   },
   "devDependencies": {
     "playwright-core": "^1.49.0"

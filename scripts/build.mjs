@@ -17,7 +17,7 @@ const dist = path.join(root, 'dist');
 // Identifies this add-on, not the developer: AMO ties an id to exactly one
 // listing, so a second add-on needs a different one. Permanent from the first
 // signing — AMO will not let it change. See PUBLISHING.md.
-const GECKO_ID = 'pitch-shifter@hectorj.net';
+const GECKO_ID = 'transposeur@hectorj.net';
 
 await fs.rm(dist, { recursive: true, force: true });
 

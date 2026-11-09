@@ -75,7 +75,7 @@ describe('the popup in French', () => {
   before(async () => {
     userDataDir = await fs.mkdtemp(path.join(os.tmpdir(), 'pitch-shifter-fr-'));
     context = await launchWithExtension(path.join(root, 'dist/chrome'), userDataDir, ['--lang=fr']);
-    const id = await extensionId(context, 'Pitch Shifter');
+    const id = await extensionId(context, 'Transposeur');
     page = await context.newPage();
     await page.goto(`chrome-extension://${id}/popup.html`);
   });

@@ -1,4 +1,4 @@
-# pitch-shifter
+# Transposeur
 
 Transpose and slow down any audio or video in a web page — in **Chrome and Firefox** — without
 turning the singer into a chipmunk.

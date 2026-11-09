@@ -16,22 +16,25 @@ const run = promisify(execFile);
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const dist = path.join(root, 'dist');
 
-const { version } = JSON.parse(await fs.readFile(path.join(root, 'extension/manifest.json'), 'utf8'));
+const { name, version } = JSON.parse(
+  await fs.readFile(path.join(root, 'extension/manifest.json'), 'utf8')
+);
+const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 
-async function zip(name, cwd, args) {
-  const out = path.join(dist, name);
+async function zip(file, cwd, args) {
+  const out = path.join(dist, file);
   await fs.rm(out, { force: true });
   await run('zip', ['-r', '-q', '-X', out, ...args], { cwd });
   const { size } = await fs.stat(out);
-  console.log(`${name}  ${(size / 1024).toFixed(0)} KB`);
+  console.log(`${file}  ${(size / 1024).toFixed(0)} KB`);
 }
 
 for (const target of ['chrome', 'firefox']) {
-  await zip(`pitch-shifter-${target}-${version}.zip`, path.join(dist, target), ['.']);
+  await zip(`${slug}-${target}-${version}.zip`, path.join(dist, target), ['.']);
 }
 
 // What a reviewer needs to rebuild dist/ from scratch, and nothing else.
-await zip(`pitch-shifter-source-${version}.zip`, root, [
+await zip(`${slug}-source-${version}.zip`, root, [
   'extension',
   'scripts',
   'tests',

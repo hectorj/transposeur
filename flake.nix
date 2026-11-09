@@ -1,5 +1,5 @@
 {
-  description = "pitch-shifter — formant-preserving pitch shifting for browsers (Chrome + Firefox)";
+  description = "Transposeur — formant-preserving pitch shifting for browsers (Chrome + Firefox)";
 
   inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
 
@@ -39,7 +39,7 @@
           # to stderr, so piping a command's stdout through the shell stays clean
           shellHook = ''
             >&2 cat <<'BANNER'
-            pitch-shifter dev shell
+            Transposeur dev shell
               npm test                everything below
               npm run test:dsp        pitch ratio / formant / tempo checks
               npm run test:extension  packed extension in Chromium

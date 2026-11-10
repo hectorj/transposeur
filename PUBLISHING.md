@@ -25,10 +25,10 @@ line and the latency figure are measured. Re-render them whenever the popup chan
 - **Firefox — submitted as a public listing**, 2026-11-10, awaiting review:
   <https://addons.mozilla.org/en-US/firefox/addon/transposeur/>. The French store listing is still
   to be added from the dashboard; that needs no new version and no new review.
-- **Chrome — not started.** See "Chrome Web Store, step by step" below. Chrome has no equivalent to
-  AMO's unlisted *signing*: anything that installs permanently has to come from the Web Store, so
-  the $5 developer account is unavoidable even for a private add-on. Unlisted is the sensible
-  setting — not searchable, installable by link.
+- **Chrome — submitted**, 2026-11-10, awaiting review. Item id `ggdcpankgikheehfahcpgkoinkfkglhi`,
+  so the install link will be
+  <https://chrome.google.com/webstore/detail/ggdcpankgikheehfahcpgkoinkfkglhi>. Unlisted: that link
+  is the only way to reach it. See "Chrome Web Store, step by step" below for what was filled in.
 
 Loading unpacked works for development but Chrome nags about developer mode on every start, and
 Firefox drops temporary add-ons on restart. Neither is good for a non-technical user.

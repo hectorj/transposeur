@@ -19,8 +19,6 @@ const dist = path.join(root, 'dist');
 // signing — AMO will not let it change. See PUBLISHING.md.
 const GECKO_ID = 'transposeur@hectorj.net';
 
-await fs.rm(dist, { recursive: true, force: true });
-
 const manifest = JSON.parse(await fs.readFile(path.join(src, 'manifest.json'), 'utf8'));
 
 const targets = {
@@ -40,6 +38,10 @@ const targets = {
 
 for (const [name, mf] of Object.entries(targets)) {
   const out = path.join(dist, name);
+  // Only this build's own directory is cleared. dist/ also holds the upload
+  // zips and the store screenshots, and a plain `npm test` must not delete
+  // artifacts that were just built for a submission.
+  await fs.rm(out, { recursive: true, force: true });
   await fs.cp(src, out, { recursive: true });
   await fs.writeFile(path.join(out, 'manifest.json'), `${JSON.stringify(mf, null, 2)}\n`);
   console.log(`built dist/${name}`);

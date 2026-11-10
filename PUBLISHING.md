@@ -12,23 +12,26 @@ produces, in `dist/` (names follow the manifest, so a rename carries through):
 | `transposeur-firefox-<v>.zip` | addons.mozilla.org upload |
 | `transposeur-source-<v>.zip` | AMO's source archive (see "Notes to Reviewer") |
 
-## Decide the goal first
+```sh
+nix develop --command npm run screenshots
+```
 
-**If this is just for your teacher**, a full public listing is a lot of overhead for one user —
-review cycles, store metadata, and an ongoing maintenance obligation. Two lighter routes give a
-permanent, no-nagging install:
+renders `dist/store/screenshot-{en,fr}.png` at 1280×800, the size both stores take. They are not
+mockups: the panel in them is the real popup driven against a real playing `<audio>`, so the status
+line and the latency figure are measured. Re-render them whenever the popup changes.
 
-- **Firefox — unlisted signed add-on.** AMO will sign an add-on without listing it publicly. You get
-  a signed `.xpi` that installs permanently in release Firefox and auto-updates if you host an
-  update manifest. Free, and review for unlisted add-ons is usually automated. This is the best fit.
-- **Chrome — unlisted Web Store item.** Chrome has no equivalent to unlisted signing; anything that
-  installs permanently has to come from the Web Store. "Unlisted" means it is not searchable but
-  anyone with the link can install. Still needs the developer account and still goes through review.
+## Where things stand
 
-Loading unpacked (what you are doing now) works but Chrome nags about developer mode on every start,
-and Firefox drops temporary add-ons on restart. Neither is good for a non-technical user.
+- **Firefox — submitted as a public listing**, 2026-11-10, awaiting review:
+  <https://addons.mozilla.org/en-US/firefox/addon/transposeur/>. The French store listing is still
+  to be added from the dashboard; that needs no new version and no new review.
+- **Chrome — not started.** See "Chrome Web Store, step by step" below. Chrome has no equivalent to
+  AMO's unlisted *signing*: anything that installs permanently has to come from the Web Store, so
+  the $5 developer account is unavoidable even for a private add-on. Unlisted is the sensible
+  setting — not searchable, installable by link.
 
-Go fully public later, once your teacher has used it for a few weeks and you know it holds up.
+Loading unpacked works for development but Chrome nags about developer mode on every start, and
+Firefox drops temporary add-ons on restart. Neither is good for a non-technical user.
 
 ## What only you can do
 
@@ -53,8 +56,9 @@ I cannot create accounts, accept terms, pay fees, or submit on your behalf.
       see the English blurb.
 - [ ] **Paste the store copy** from "Store listing copy" below. Both stores reject descriptions
       that oversell, so the limits are stated rather than buried.
-- [ ] **Screenshots.** At minimum the popup over a YouTube page. Chrome wants 1280×800 or 640×400.
-- [ ] **Permission justifications.** Chrome asks for one per permission:
+- [x] **Screenshots.** `npm run screenshots` produces an English and a French one at 1280×800.
+- [ ] **Permission justifications.** Chrome asks for one per permission; "Chrome Web Store, step by
+      step" below has them written out to paste. In short:
       - `activeTab` + `scripting` — inject the audio processing into the tab the user is on, only
         when they click the toolbar button.
       - `storage` — remember each tab's pitch and tempo while the browser is open. Written to
@@ -173,6 +177,62 @@ benign, and how to rebuild the generated code. Paste the whole block.
 > intended case — start playback, click the toolbar button, and move the Pitch slider off zero.
 > Pitch is in semitones; Tempo is independent of it. The interface is English and French, following
 > the browser language.
+
+## Chrome Web Store, step by step
+
+Firefox is published; this is the other half. Chrome has no unlisted-signing route, so even a
+private add-on has to go through the Web Store, and that means the developer account.
+
+**1. Register.** <https://chrome.google.com/webstore/devconsole>, sign in, pay the one-time **$5**
+fee and complete identity verification. Verification can take a day or two on its own, and nothing
+can be submitted until it clears — start it first and do the rest while it runs.
+
+**2. Create the item** and upload `dist/transposeur-chrome-<v>.zip`. Chrome takes the Chrome build,
+not the Firefox one: they differ, the Firefox zip carries the Gecko add-on id.
+
+**3. Store listing.**
+
+| Field | What to put |
+| --- | --- |
+| Name | Transposeur |
+| Summary (132 chars) | the English summary from "Store listing copy" above, trimmed to fit |
+| Description | the English description from "Store listing copy" above |
+| Category | Entertainment |
+| Language | English, then add French and paste the French copy |
+| Icon | `extension/icons/icon-128.png` |
+| Screenshots | `dist/store/screenshot-en.png`, and `screenshot-fr.png` under the French listing |
+| Support URL | <https://github.com/hectorj/transposeur/issues> |
+
+**4. Privacy practices.** The tab that trips people up. Answers:
+
+- *Single purpose* — "Transposeur changes the musical pitch and the playback speed of the audio or
+  video already playing in the tab the user is on, so that a singer can practise in their own range."
+- *activeTab* — "The add-on processes the audio of the page the user is on. activeTab grants that
+  access only for the tab whose toolbar button the user clicked, which is narrower than any host
+  permission would be."
+- *scripting* — "Used to inject the audio-processing content script into the active tab on demand,
+  once the user opens the popup. Nothing is injected into tabs the user has not activated."
+- *storage* — "Remembers each tab's pitch and tempo while the browser is open, so the settings
+  survive a page reload. Written to storage.session, which is in-memory and discarded on exit;
+  nothing is written to disk."
+- *Host permissions* — none are requested. Say so; it shortens review.
+- *Remote code* — **No, I am not using remote code.** Everything the add-on runs ships inside the
+  package, including the WebAssembly module. Nothing is fetched or evaluated from a remote origin.
+- *Data usage* — tick nothing. No data is collected, used or transferred; audio never leaves the
+  page. Then certify compliance with the Developer Program Policies.
+
+**5. Distribution.** **Unlisted** is the right choice for now: anyone with the link can install, it
+does not appear in search, and it needs no audience. It can be flipped to Public later without
+re-review of the listing. All regions, free, no in-app purchases.
+
+**6. Submit.** Review is usually a few days. Extensions that touch page content sometimes take
+longer, and the first submission from a new account is the slowest one.
+
+Chrome has no "Notes to Reviewer" field, and no source-archive requirement — the AMO block above is
+Firefox-only. If a reviewer does ask about the WebAssembly, the answer is the same: it is the
+upstream prebuilt release of Signalsmith Stretch (MIT), vendored at the commit recorded in
+`third_party/signalsmith-stretch/VENDORED_COMMIT`, and the sources are public at
+<https://github.com/hectorj/transposeur>.
 
 ## Firefox for Android
 

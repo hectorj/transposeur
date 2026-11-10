@@ -1,0 +1,64 @@
+<!doctype html>
+<!--
+  Backdrop for the store screenshots: a plain page with a playable track, so
+  the screenshot shows the add-on's own interface over something ordinary
+  rather than over another company's product.
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Rehearsal track</title>
+    <style>
+      :root { color-scheme: light; }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        padding-bottom: 60px;
+        background: linear-gradient(160deg, #10131a, #1d2433 60%, #2a2140);
+        font: 15px/1.5 system-ui, sans-serif;
+        color: #e8ebf2;
+      }
+      .card {
+        width: 520px;
+        padding: 32px 36px 28px;
+        border-radius: 16px;
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+      }
+      h1 { margin: 0 0 4px; font-size: 22px; font-weight: 650; }
+      p { margin: 0 0 22px; color: #a9b2c4; font-size: 14px; }
+      audio { width: 100%; }
+      .bars { display: flex; gap: 3px; align-items: flex-end; height: 72px; margin: 0 0 20px; }
+      .bars i { flex: 1; background: linear-gradient(#8aa8ff, #5a6ff0); border-radius: 2px; opacity: 0.85; }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <h1 id="title">Rehearsal track</h1>
+      <p id="subtitle">Soprano line · original key</p>
+      <div class="bars" id="bars"></div>
+      <audio id="a" controls loop src="/tone.wav"></audio>
+    </div>
+    <script>
+      // ?lang=fr dresses the backdrop for the French screenshot.
+      if (new URLSearchParams(location.search).get('lang') === 'fr') {
+        document.documentElement.lang = 'fr';
+        document.getElementById('title').textContent = 'Morceau de travail';
+        document.getElementById('subtitle').textContent = 'Ligne de soprano · tonalité d\u2019origine';
+      }
+
+      // A fixed pseudo-waveform: deterministic, so repeated screenshots match.
+      const bars = document.getElementById('bars');
+      let s = 7;
+      for (let i = 0; i < 64; i++) {
+        s = (s * 1103515245 + 12345) & 0x7fffffff;
+        const h = 18 + ((s >> 8) % 82);
+        bars.insertAdjacentHTML('beforeend', `<i style="height:${h}%"></i>`);
+      }
+      document.getElementById('a').play().catch(() => {});
+    </script>
+  </body>
+</html>

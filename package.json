@@ -13,6 +13,7 @@
     "lint:firefox": "node scripts/build.mjs && web-ext lint -s dist/firefox",
     "test:firefox": "node scripts/build.mjs && node --test tests/firefox.test.mjs",
     "icons": "node scripts/icons.mjs",
+    "screenshots": "node scripts/build.mjs && node scripts/screenshots.mjs",
     "package": "node scripts/build.mjs && node scripts/package.mjs",
     "sign:firefox": "node scripts/build.mjs && ./scripts/with-env.sh web-ext sign -s dist/firefox --channel=unlisted --artifacts-dir=dist",
     "run:android": "node scripts/build.mjs && web-ext run -s dist/firefox --target=firefox-android"

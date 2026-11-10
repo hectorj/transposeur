@@ -66,7 +66,12 @@ export async function startServer() {
       url.pathname === '/' ? '/harness.html' : csp ? url.pathname.slice(csp.length + 1) : url.pathname;
     // /ext and /lib let a fixture page import the real shipped module and the
     // test analysis helpers, so metrics can be computed in the browser
-    const roots = { '/vendor/': 'extension', '/ext/': 'extension', '/lib/': 'tests/lib' };
+    const roots = {
+      '/vendor/': 'extension',
+      '/ext/': 'extension',
+      '/lib/': 'tests/lib',
+      '/store/': 'assets/store',
+    };
     const prefix = Object.keys(roots).find((p) => rel.startsWith(p));
     const file = prefix
       ? path.join(root, roots[prefix], prefix === '/vendor/' ? rel : rel.slice(prefix.length - 1))
